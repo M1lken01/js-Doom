@@ -1,0 +1,15 @@
+{
+  "name": "js-doom",
+  "version": "1.0.0",
+  "description": "Doom in HTML canvas.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.3"
+  }
+}
