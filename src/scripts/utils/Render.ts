@@ -7,6 +7,8 @@ const canvas = document.getElementById('game') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 let fov = 90;
 
+type PolygonVector = [Vector2, Vector2, Vector2];
+
 export const toCanvasCoords = (vector: Vector2) => new Vector2(vector.x + canvas.width / 2, canvas.height / 2 - vector.y);
 
 export function drawVertex(vector: Vector2 = new Vector2(), r = 5, clr = '#fff'): void {
@@ -26,6 +28,20 @@ export function drawVector(vector: Vector2 = new Vector2(), trail = new Vector2(
   let finalVector = isGlobal ? vector : new Vector2(trail.x + vector.x, -trail.y + vector.y);
   ctx.lineTo(finalVector.x, finalVector.y);
   ctx.stroke();
+}
+
+export function drawPolygon(polygon: PolygonVector, clr = '#fff'): void {
+  ctx.strokeStyle = clr;
+  ctx.fillStyle = clr;
+  for (let i = 0; i < polygon.length; i++) {
+    polygon[i] = toCanvasCoords(polygon[i]);
+  }
+  ctx.beginPath();
+  ctx.moveTo(polygon[0].x, polygon[0].y);
+  ctx.lineTo(polygon[1].x, polygon[1].y);
+  ctx.lineTo(polygon[2].x, polygon[2].y);
+  ctx.closePath();
+  ctx.fill();
 }
 
 export function getOnScreenSrc(object: Vector3): Vector2 {
@@ -63,10 +79,19 @@ export function getOnScreen(object: Vector3): Vector2 {
 }
 
 export function drawModel(model: Model): void {
+  const onScreenVertices: Vector2[] = [];
   for (let i = 0; i < model.vertices.length; i++) {
-    drawVertex(getOnScreen(Vector3.add(model.position, Vector3.subtract(model.pivot, model.vertices[i]))));
+    const vertex = getOnScreen(Vector3.add(model.position, Vector3.subtract(model.pivot, model.vertices[i])));
+    onScreenVertices.push(vertex);
+    drawVertex(vertex);
+  }
+
+  for (let i = 0; i < model.polygons.length; i++) {
+    drawPolygon(model.polygons[i].map((index) => onScreenVertices[index]) as PolygonVector);
   }
 }
+
+export const getRandomColor = () => `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
 
 export function render(models: Model[], fov: number): void {
   fov = fov;
