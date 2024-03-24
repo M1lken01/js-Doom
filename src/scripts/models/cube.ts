@@ -1,5 +1,5 @@
-import { Model } from '../types/Model';
-import { Vector3 } from '../types/Vector3';
+import { Model } from '../types/Model.js';
+import { Vector3 } from '../types/Vector3.js';
 
 export class Cube {
   size: number;
@@ -34,7 +34,7 @@ export class Cube {
         [0, 1, 2], // Front face
         [0, 2, 3], // Front face (continued)
       ],
-      new Vector3(0, 0, 200),
+      position,
       new Vector3(size / 2, size / 2, size / 2),
     );
   }

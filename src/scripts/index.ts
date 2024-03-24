@@ -1,4 +1,4 @@
-import { Cube } from './models/cube.js';
+import { Cube } from './models/Cube.js';
 import { Player } from './types/Player.js';
 import { Vector3 } from './types/Vector3.js';
 import { render } from './utils/Render.js';
@@ -20,6 +20,8 @@ function update() {
   const y = parseFloat((document.getElementById('y') as HTMLInputElement).value.toString());
   const z = parseFloat((document.getElementById('z') as HTMLInputElement).value.toString());
   cube.position = new Vector3(x, y, z);
+
+  console.log(cube, cube2, cube3);
 
   render(player, [cube, cube2, cube3], fov);
 }
