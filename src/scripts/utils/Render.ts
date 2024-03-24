@@ -1,4 +1,5 @@
 import { Model } from '../types/Model.js';
+import { Player } from '../types/Player.js';
 import { Vector2 } from '../types/Vector2.js';
 import { Vector3 } from '../types/Vector3.js';
 import { toRadians } from './Math.js';
@@ -6,6 +7,7 @@ import { toRadians } from './Math.js';
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 let fov = 90;
+let player: Player;
 
 type PolygonVector = [Vector2, Vector2, Vector2];
 
@@ -44,7 +46,9 @@ export function drawPolygon(polygon: PolygonVector, clr = '#fff'): void {
   ctx.fill();
 }
 
-export function getOnScreenSrc(object: Vector3): Vector2 {
+export function getOnScreenSrc(object: Vector3, observer: Vector3): Vector2 {
+  object = Vector3.subtract(object, observer);
+  const modifier = 100;
   const w = canvas.width;
   const h = canvas.height;
   const alpha1 = fov / 2;
@@ -64,10 +68,12 @@ export function getOnScreenSrc(object: Vector3): Vector2 {
   const i = Math.sqrt(l2 ** 2 - d ** 2);
   const j = Math.sqrt(l1 ** 2 - l2 ** 2);
 
-  return new Vector2(i * 100 * Math.sign(object.z), j * 100 * Math.sign(object.y));
+  return new Vector2(i * modifier * Math.sign(object.z), j * modifier * Math.sign(object.y));
 }
 
-export function getOnScreen(object: Vector3): Vector2 {
+export function getOnScreen(object: Vector3, observer: Vector3): Vector2 {
+  object = Vector3.subtract(object, observer);
+  const modifier = 100;
   const w = canvas.width;
   const e = w / 2 / Math.sin(toRadians(fov / 2));
   const d = Math.sqrt(e ** 2 - (w / 2) ** 2);
@@ -75,26 +81,27 @@ export function getOnScreen(object: Vector3): Vector2 {
   const l = d / Math.cos(toRadians(Math.asin(object.z / Math.sqrt(object.z ** 2 + (d + object.x) ** 2))));
   const i = Math.sqrt(l ** 2 - d ** 2);
   const j = Math.sqrt((d / Math.cos(toRadians(Math.asin(q / Math.sqrt(q ** 2 + (d + object.x) ** 2))))) ** 2 - l ** 2);
-  return new Vector2(i * 100 * Math.sign(object.z), j * 100 * Math.sign(object.y));
+  return new Vector2(i * modifier * Math.sign(object.z), j * modifier * Math.sign(object.y));
 }
 
 export function drawModel(model: Model): void {
   const onScreenVertices: Vector2[] = [];
   for (let i = 0; i < model.vertices.length; i++) {
-    const vertex = getOnScreen(Vector3.add(model.position, Vector3.subtract(model.pivot, model.vertices[i])));
+    const vertex = getOnScreen(Vector3.subtract(model.position, Vector3.subtract(model.pivot, model.vertices[i])), player.position);
     onScreenVertices.push(vertex);
     drawVertex(vertex);
   }
 
   for (let i = 0; i < model.polygons.length; i++) {
-    drawPolygon(model.polygons[i].map((index) => onScreenVertices[index]) as PolygonVector);
+    drawPolygon(model.polygons[i].map((index) => onScreenVertices[index]) as PolygonVector, getRandomColor());
   }
 }
 
 export const getRandomColor = () => `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
 
-export function render(models: Model[], fov: number): void {
-  fov = fov;
+export function render(p: Player, models: Model[], f: number): void {
+  fov = f;
+  player = p;
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
