@@ -1,4 +1,4 @@
-import { Model } from '../types/Model.js';
+import { Model, Polygon } from '../types/Model.js';
 import { Player } from '../types/Player.js';
 import { Vector2 } from '../types/Vector2.js';
 import { Vector3 } from '../types/Vector3.js';
@@ -84,6 +84,65 @@ export function getOnScreen(object: Vector3, observer: Vector3): Vector2 {
   return new Vector2(i * modifier * Math.sign(object.z), j * modifier * Math.sign(object.y));
 }
 
+export function drawModel2(model: Model): void {
+  const onScreenVertices: Vector2[] = [];
+  // todo order vertices based on distance (high to low)
+  for (let i = 0; i < model.vertices.length; i++) {
+    const vertex = getOnScreen(Vector3.subtract(model.position, Vector3.subtract(model.pivot, model.vertices[i])), player.position);
+    onScreenVertices.push(vertex);
+    drawVertex(vertex);
+  }
+
+  /*for (let i = 0; i < model.polygons.length; i++) {
+    drawPolygon(model.polygons[i].vertices.map((index) => onScreenVertices[index]) as PolygonVector, model.polygons[i].color);
+  }*/
+
+  const distances: { polygons: Polygon; distance: number; center: Vector3 }[] = [];
+
+  function getCenterOfFace(points: Vector3[]): Vector3 {
+    let center = new Vector3();
+
+    for (const point of points) {
+      center.x += point.x;
+      center.y += point.x;
+      center.z += point.x;
+    }
+
+    center.x = center.x / points.length;
+    center.y = center.y / points.length;
+    center.z = center.z / points.length;
+    return center;
+  }
+
+  function mapVertexIndicesToPoints(vertices: Vector3[], vertexIndices: [number, number, number]): Vector3[] {
+    return vertexIndices.map((index) => vertices[index]);
+  }
+
+  for (const polygons of model.polygons) {
+    /*let polygonVertexDistances: number[] = [];
+    for (let i = 0; i < polygons.vertices.length; i++) {
+      polygonVertexDistances.push(Vector3.distance(player.position, model.vertices[polygons.vertices[i]]));
+    }*/
+    const center = getCenterOfFace(mapVertexIndicesToPoints(model.vertices, polygons.vertices));
+    distances.push({ polygons, center, distance: Vector3.distance(player.position, center) });
+  }
+
+  distances.sort((a, b) => b.distance - a.distance);
+
+  /*for (const { polygons } of distances) {
+    console.log(polygons.color);
+    drawPolygon(polygons.vertices.map((index) => onScreenVertices[index]) as PolygonVector, polygons.color);
+  }*/
+
+  for (let i = 0; i < distances.length; i++) {
+    console.log(distances[i].polygons.color, i, distances[i].distance);
+    drawPolygon(distances[i].polygons.vertices.map((index) => onScreenVertices[index]) as PolygonVector, distances[i].polygons.color);
+
+    drawVertex(getOnScreen(distances[i].center, player.position));
+  }
+  console.log('divider');
+}
+
 export function drawModel(model: Model): void {
   const onScreenVertices: Vector2[] = [];
   for (let i = 0; i < model.vertices.length; i++) {
@@ -93,11 +152,18 @@ export function drawModel(model: Model): void {
   }
 
   for (let i = 0; i < model.polygons.length; i++) {
-    drawPolygon(model.polygons[i].map((index) => onScreenVertices[index]) as PolygonVector, getRandomColor());
+    drawPolygon(model.polygons[i].vertices.map((index) => onScreenVertices[index]) as PolygonVector, getRandomColor());
   }
 }
 
 export const getRandomColor = () => `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
+
+function drawCrosshair(clr: string = 'lime', gap: number = 6, len: number = 12) {
+  drawVector(new Vector2(0, gap), new Vector2(0, gap + len), true, clr);
+  drawVector(new Vector2(0, -gap), new Vector2(0, -(gap + len)), true, clr);
+  drawVector(new Vector2(gap, 0), new Vector2(gap + len, 0), true, clr);
+  drawVector(new Vector2(-gap, 0), new Vector2(-(gap + len), 0), true, clr);
+}
 
 export function render(p: Player, models: Model[], f: number): void {
   fov = f;
@@ -105,9 +171,16 @@ export function render(p: Player, models: Model[], f: number): void {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (let i = 0; i < models.length; i++) {
-    drawModel(models[i]);
+  const distances: { model: Model; distance: number }[] = [];
+  for (const model of models) {
+    distances.push({ model, distance: Vector3.distance(player.position, model.position) });
   }
 
-  drawVertex(new Vector2(), 5, 'lime');
+  distances.sort((a, b) => b.distance - a.distance);
+
+  for (const { model } of distances) {
+    drawModel(model);
+  }
+
+  drawCrosshair();
 }

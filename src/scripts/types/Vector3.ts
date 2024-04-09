@@ -70,6 +70,10 @@ export class Vector3 {
     return `(${this.x}, ${this.y}, ${this.z})`;
   }
 
+  length(): number {
+    return 3;
+  }
+
   // Static Methods
   static angle(from: Vector3, to: Vector3) {
     const cosTheta = Vector3.dot(from.normalized, to.normalized);

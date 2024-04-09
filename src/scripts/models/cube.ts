@@ -6,7 +6,7 @@ export class Cube {
   position: Vector3;
   model: Model;
 
-  constructor(size: number = 100, position: Vector3 = new Vector3()) {
+  constructor(size: number = 100, position: Vector3 = new Vector3(), color: string = '#fff') {
     this.size = size;
     this.position = position;
     this.model = new Model(
@@ -21,18 +21,18 @@ export class Cube {
         new Vector3(size, 0, size),
       ],
       [
-        [4, 5, 6], // Back face
-        [4, 6, 7], // Back face (continued)
-        [0, 4, 7], // Left face
-        [0, 7, 3], // Left face (continued)
-        [1, 5, 6], // Right face
-        [1, 6, 2], // Right face (continued)
-        [0, 1, 5], // Top face
-        [0, 5, 4], // Top face (continued)
-        [2, 6, 7], // Bottom face
-        [2, 7, 3], // Bottom face (continued)
-        [0, 1, 2], // Front face
-        [0, 2, 3], // Front face (continued)
+        { vertices: [4, 5, 6], color }, // Back face
+        { vertices: [4, 6, 7], color }, // Back face (continued)
+        { vertices: [0, 4, 7], color }, // Left face
+        { vertices: [0, 7, 3], color }, // Left face (continued)
+        { vertices: [1, 5, 6], color }, // Right face
+        { vertices: [1, 6, 2], color }, // Right face (continued)
+        { vertices: [0, 1, 5], color }, // Top face
+        { vertices: [0, 5, 4], color }, // Top face (continued)
+        { vertices: [2, 6, 7], color }, // Bottom face
+        { vertices: [2, 7, 3], color }, // Bottom face (continued)
+        { vertices: [0, 1, 2], color }, // Front face
+        { vertices: [0, 2, 3], color }, // Front face (continued)
       ],
       position,
       new Vector3(size / 2, size / 2, size / 2),

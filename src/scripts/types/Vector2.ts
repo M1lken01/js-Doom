@@ -55,6 +55,10 @@ export class Vector2 {
     return `(${this.x}, ${this.y})`;
   }
 
+  length(): number {
+    return 2;
+  }
+
   // Static Methods
   static angle(from: Vector2, to: Vector2) {
     const cosTheta = Vector2.dot(from.normalized, to.normalized);
